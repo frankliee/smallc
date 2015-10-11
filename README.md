@@ -13,4 +13,4 @@
 * prime.cs
 * test.c
 
-branch_break;
+break
