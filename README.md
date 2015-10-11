@@ -11,5 +11,5 @@
 * factorial.cs
 * gcd.cs
 * prime.cs
-* test.cs
--------------
+* test.c
+
