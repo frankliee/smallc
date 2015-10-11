@@ -1,3 +1,4 @@
-write(1);
-write( 'ee' );
-write(2);
+var i,j;
+for( i=3;i<10;++i ){
+	write(i);
+}

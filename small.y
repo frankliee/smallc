@@ -28,7 +28,7 @@ FILE * c_file;
 
 %token DEBUG
 %token <d> NUMBER
-%token IF ELSE WHILE VAR CONST
+%token IF ELSE WHILE VAR CONST REPEAT UNTIL DO  FOR
 %token READ WRITE EXIT ABS SQRT POW ODD
 %token DADD DSUB AND OR NOT
 %token <str> STRING
@@ -50,7 +50,7 @@ FILE * c_file;
 %start Program 
 %type <symlist> Sym_List
 %type <ast> Decl_List State_List State 
-%type <ast>  If_State While_State Exp 
+%type <ast>  If_State While_State Exp Exp_List 
 
 %%
 
@@ -81,7 +81,9 @@ State_List: {$$=NULL;}
 			else $$ = newAst('L',$1,$2);
 			} 
 		;	
-
+Exp_List: {$$=NULL;}
+		| Exp     { $$=$1;}
+		| Exp_List ',' Exp { $$ = newAst('L',$1,$3); }
 State:  Exp ';'      { $$=$1; }
 	 |  If_State     { $$=$1; }
 	 |  While_State   { $$=$1; }
@@ -94,8 +96,21 @@ If_State: IF '(' Exp ')' '{' State_List '}'
 			{ $$=newFlow(IF,$3,$6,NULL);}
 		;
 
-While_State: WHILE '(' Exp ')' 
-		 '{' State_List '}' {$$=newFlow(WHILE,$3,$6,NULL); };
+While_State: WHILE '(' Exp ')' '{' State_List '}'
+			{ $$=newFlow(WHILE,$3,$6,NULL); }
+		 | DO '{' State_List '}' WHILE '(' Exp ')'
+			{ $$=newFlow(DO,$7,$3,NULL); }
+		 | REPEAT '{' State_List '}' UNTIL '(' Exp ')'
+			{ $$=newFlow(REPEAT,$7,$3,NULL); }
+		 |	FOR '(' Exp_List ';' Exp ';' Exp_List ')' '{' State_List '}'
+		 	{
+			  //cout<<"for catch"<<endl;	
+			  $$ = newFlow(FOR,$5,$10,$7);
+			  if($3!=NULL)
+			  	$$ = newAst('L',$3,$$);
+			}
+		 ;
+
 
 Exp : NUMBER      		{ $$=newNum($1); }
 	| READ '(' ID ')' 	{ $$=newRead($3);}

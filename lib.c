@@ -418,6 +418,17 @@ eval(struct Ast * ast){
 				v = eval(((struct Flow *)ast)->tl);
 		}
 		break;
+		/* for */
+	case FOR:
+		v = 0.0;
+		if(((struct Flow *)ast)->tl){
+			while(eval(((struct Flow *)ast)->cond)!=0){
+				v = eval(((struct Flow *)ast)->tl);
+				if(((struct Flow *)ast)->el)
+					eval(((struct Flow *)ast)->el);
+			}
+		}
+		break;
 		/* 内建函数 */
 		/* Read */
 	case READ:

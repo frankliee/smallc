@@ -60,6 +60,10 @@ using namespace std;
 "if" 	{	return IF;}
 "else"	{	return ELSE;}
 "while" {	return WHILE;}
+"do"	{	return DO;	}
+"for"	{	return FOR;	}
+"repeat" {	return REPEAT;}
+"until"	{	return UNTIL;}
 "read"	{	return READ;}
 "print" {	return WRITE;}
 "write"	{	return WRITE;}
