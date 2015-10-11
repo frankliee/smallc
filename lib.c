@@ -429,6 +429,26 @@ eval(struct Ast * ast){
 			}
 		}
 		break;
+		/* do until */
+	case  DO:
+		v = 0.0;
+		if(((struct Flow *)ast)->cond){
+			do{
+				if(((struct Flow *)ast)->cond)
+					eval(((struct Flow *)ast)->tl);
+			}while(eval(((struct Flow *)ast)->cond)!=0);
+		}
+		break;
+		/* repeat until */
+	case REPEAT:
+		v = 0.0;
+		if(((struct Flow *)ast)->cond){
+			do{
+				if(((struct Flow *)ast)->cond)
+					eval(((struct Flow *)ast)->tl);
+			}while(eval(((struct Flow *)ast)->cond)==0);
+		}
+		break;
 		/* 内建函数 */
 		/* Read */
 	case READ:
