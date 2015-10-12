@@ -4,6 +4,11 @@
 #include "small.tab.h"
 #include <iostream>
 using namespace std;
+int yycolumn = 1;
+#define YY_USER_ACTION yylloc.first_line = yylloc.last_line=yylineno; \
+		yylloc.first_column = yycolumn;yylloc.last_column = yycolumn+yyleng-1; \
+		yycolumn += yyleng;
+
 %}
 %option nodefault
 %option noyywrap 
@@ -79,7 +84,7 @@ using namespace std;
 "debug"	{	return DEBUG;}
 
 [ \t]   { /* ignore white space */ }
-\n		{ 				}
+\n		{ yycolumn = 1;				}
 
 
 [a-zA-Z][a-zA-Z0-9]* {

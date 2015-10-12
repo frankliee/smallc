@@ -3,6 +3,7 @@
 #include "lib.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <set>
 #include <list>
 #include <memory>
@@ -11,12 +12,15 @@
 using namespace std;
 int yylex();
 int yyrestart(FILE * f);
-void yyerror(char* s);
+void yyerror(char* s,...);
+void lyyerror(YYLTYPE t,char * s,...);
 int init(int argc,char** argv);
 void end();
 FILE * c_file;
+int error_tag = 1;
 %}
 %debug
+%locations
 %union{
 	struct Ast * ast;
 	double d;
@@ -35,6 +39,7 @@ FILE * c_file;
 %token <sym> ID
 %token <type> BCALL
 %token <type> CMP
+
 
 %right '='
 %left NOT
@@ -55,60 +60,75 @@ FILE * c_file;
 %%
 
 Program : Decl_List State_List  {
-	eval($2);
+	if(error_tag){
+		eval($2);
 //	table_show();
-	treefree($2);
-	tablefree();
+		treefree($2);
+		tablefree();
+	}
+	else{
+		cout<<"cannot execute for synax mistake"<<endl;
+	}
 //	cout<<endl<<"*******run end*******"<<endl;
 	}
 		;
 
 Decl_List : {$$=NULL; }          
 		 | Decl_List VAR Sym_List ';' {
-		
 				 $$=NULL;
-		 } 
+		 	}
+		 | Decl_List VAR Sym_List  { lyyerror(@1,"缺少 ';' ");  }
 		 ; 
 		
 Sym_List:    { $$ = NULL; } 
 		| ID { $$ = newSymList($1); } 
-		| Sym_List ',' ID  {$$ = insertSymList('b',$3,$1);}
+		| Sym_List ',' ID  { $$ = insertSymList('b',$3,$1); }
+		| Sym_List ','     { lyyerror(@1,"多余 ','");}
 		;
 
 State_List: {$$=NULL;}
 		| State_List State {
 			if($1==NULL) $$ = $2;
 			else $$ = newAst('L',$1,$2);
-			} 
+			} 	
 		;	
 Exp_List: {$$=NULL;}
 		| Exp     { $$=$1;}
 		| Exp_List ',' Exp { $$ = newAst('L',$1,$3); }
-State:  Exp ';'      { $$=$1; }
+		| Exp_List ','     { lyyerror(@1,"多余 ',' "); }
+		;
+State:  Exp   ';'      { $$=$1; }
 	 |  If_State     { $$=$1; }
 	 |  While_State   { $$=$1; }
+	 |  Exp				{ lyyerror(@1,"缺少 ;");}
 	 ;
 
-If_State: IF '(' Exp ')' '{' State_List '}'
-		ELSE '{'  State_List '}'
+If_State: IF '(' Exp ')' '{' State_List '}'	ELSE '{'  State_List '}'
 			{ $$=newFlow(IF,$3,$6,$10); }
 		| IF '(' Exp ')' '{' State_List '}'
 			{ $$=newFlow(IF,$3,$6,NULL);}
+		| IF '(' Exp ')'  { lyyerror(@1, "缺少if主体"); }
 		;
 
 While_State: WHILE '(' Exp ')' '{' State_List '}'
-			{ $$=newFlow(WHILE,$3,$6,NULL); }
-		 | DO '{' State_List '}' WHILE '(' Exp ')'
-			{ $$=newFlow(DO,$7,$3,NULL); }
-		 | REPEAT '{' State_List '}' UNTIL '(' Exp ')'
-			{ $$=newFlow(REPEAT,$7,$3,NULL); }
+					{ $$=newFlow(WHILE,$3,$6,NULL); }
+		 | WHILE '(' Exp ')' 
+					{ lyyerror(@1,"缺少while主体"); }
+		 | DO '{' State_List '}' WHILE '(' Exp ')' ';'
+					{ $$=newFlow(DO,$7,$3,NULL); }
+		 | DO '{' State_List '}'
+	 				{ lyyerror(@1,"缺少do终止条件");}	 
+		 | REPEAT '{' State_List '}' UNTIL '(' Exp ')' ';'
+					{ $$=newFlow(REPEAT,$7,$3,NULL); }
+		 | REPEAT '{' State_List '}' 
+		 			{ lyyerror(@1,"缺少repeat终止条件"); }
 		 |	FOR '(' Exp_List ';' Exp ';' Exp_List ')' '{' State_List '}'
-		 	{
-			  //cout<<"for catch"<<endl;	
-			  $$ = newFlow(FOR,$5,$10,$7);
-			  if($3!=NULL)
-			  	$$ = newAst('L',$3,$$);
-			}
+		 			{
+			  	//cout<<"for catch"<<endl;	
+			  		$$ = newFlow(FOR,$5,$10,$7);
+			  		if($3!=NULL)
+			  		$$ = newAst('L',$3,$$);
+					}
 		 ;
 
 
@@ -164,8 +184,27 @@ int main(int argc,char** argv){
 	return 0;
 }
 
-void yyerror(char *s){
-	fprintf(stderr,"error: %s\n",s);
+void yyerror(char *s,...){
+	/*
+	va_list ap;
+	va_start(ap,s);
+	if(yylloc.first_line)
+		fprintf(stderr,"%d.%d-%d.%d:error: ",yylloc.first_line-1,
+		yylloc.first_column-1,yylloc.last_line-1,yylloc.last_column);
+	vfprintf(stderr,s,ap);
+	fprintf(stderr,"\n");
+	*/
+	error_tag = 0;
+}
+
+void lyyerror(YYLTYPE t,char * s,...){
+	va_list ap;
+	va_start(ap,s);
+	if(t.first_line)
+		fprintf(stderr,"line %d-%d:error:",yylineno-1,yylineno);
+	vfprintf(stderr,s,ap);
+	fprintf(stderr,"\n");
+	error_tag = 0;
 }
 
 int init(int argc,char ** argv){

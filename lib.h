@@ -12,7 +12,7 @@ using namespace std;
 extern int yylex();
 extern char * yytext;
 extern int yylineno;
-extern void yyerror(char *s);
+extern void yyerror(char *s,...);
 /* ---------------------------------*/
 
 /*  简单测试函数  */

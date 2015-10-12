@@ -327,7 +327,7 @@ treefree(struct Ast * root){
 				treefree(root->r);
 			break;
 
-		case IF:case WHILE:
+		case IF:case WHILE:case FOR: case REPEAT:case DO:
 			treefree(((struct Flow *)root)->cond);
 			if(((struct Flow *)root)->tl != NULL)
 				treefree(((struct Flow *)root)->tl);
