@@ -34,7 +34,8 @@ int error_tag = 1;
 %token <d> NUMBER
 %token IF ELSE WHILE VAR CONST REPEAT UNTIL DO  FOR
 %token READ WRITE EXIT ABS SQRT POW ODD
-%token DADD DSUB AND OR NOT
+%token DADD DSUB AND OR NOT  
+%token DEF RET
 %token <str> STRING
 %token <sym> ID
 %token <type> BCALL

@@ -60,8 +60,11 @@ int yycolumn = 1;
 "<=" { yylval.type=6; return CMP;}
 
 "and"	{	return AND;}
+"&&"	{	return AND;}
 "or"  	{ 	return OR;}
+"||"	{	return OR;}
 "not"	{	return NOT;}
+"!"		{	return NOT;}
 "if" 	{	return IF;}
 "else"	{	return ELSE;}
 "while" {	return WHILE;}
@@ -82,6 +85,8 @@ int yycolumn = 1;
 "true"	{	yylval.d = 1;return NUMBER;}
 "false" {	yylval.d = 0;return NUMBER;}
 "debug"	{	return DEBUG;}
+"def"	{	return DEF;}
+"return"  {	return RET;}
 
 [ \t]   { /* ignore white space */ }
 \n		{ yycolumn = 1;				}
