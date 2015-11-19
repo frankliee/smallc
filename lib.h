@@ -26,6 +26,10 @@ struct Ast{
 	struct Ast * r = NULL;
 };
 
+struct AstList {
+	list<struct Ast *> l;
+};
+
 /*    标识=变量/函数        */
 struct Symbol{
 	int type;
@@ -34,6 +38,7 @@ struct Symbol{
 	char * str;
 	struct Ast * func = NULL;   /* 函数体 */
 	struct SymList* symlist = NULL; /*虚拟参数*/	
+	bool ret;
 };
 
 /*      标识符列表           */
@@ -95,6 +100,12 @@ struct SymAsgn{
 	struct Ast * value = NULL;
 };
 
+struct Call{
+	int type;
+	struct Symbol * call;
+	struct Ast * l;
+};
+
 /*  初始化符号表 */
 void 
 table_init();
@@ -116,6 +127,13 @@ struct Ast * newStr(char * str);
 /* 创建新的抽象树节点 */
 struct Ast *
 newAst(int type,struct Ast * l,struct Ast * r);
+
+/* */
+struct AstList *
+newAstList(struct Ast * ast);
+/* */
+struct AstList *
+insertAstList(char c,struct Ast * ast, struct AstList * astList);
 
 /*  创建新的符号列表 */
 struct SymList *
@@ -192,8 +210,15 @@ newNum(double d);
 struct Ast *
 newFlow(int type, struct Ast * cond, struct Ast * tl,struct Ast * el);
 
+struct Ast *
+newCall(struct Symbol * fuc, struct Ast * l);
+
 /*  定义函数  */
-void def(struct Symbol *  name,struct SymList * symlist,struct Ast * st );
+void 
+def(struct Symbol *  name,struct SymList * symlist,struct Ast * st, bool ret);
+
+double
+doCall(struct Call * call);
 
 /*  调用内建函数  */
 //double callBuiltin(struct BCall * call);

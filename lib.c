@@ -13,6 +13,7 @@
 #include <string>
 #include <iostream>
 #include <math.h>
+#include <algorithm>
 using namespace std;
 map<string,Symbol*> table;
 set< char* > str_buffer;
@@ -122,6 +123,22 @@ newAst(int type,struct Ast * l,struct Ast * r){
 	ast->l = l;
 	ast->r = r;
 	return ast;
+}
+
+struct AstList *
+newAstList(struct Ast * ast) {
+	struct AstList * astList = new AstList();
+	astList->l.push_back(ast);
+	return astList;
+}
+
+struct AstList *
+insertAstList(char c, struct Ast * ast,struct AstList * astList){
+	if ( c == 'b')
+		astList->l.push_back(ast);
+	else if(c == 'f') 
+		astList->l.push_front(ast);
+	return astList;
 }
 
 struct SymList *
@@ -302,6 +319,19 @@ newFlow(int type,struct Ast * cond,struct Ast * tl,struct Ast * el){
 	flow->tl = tl;
 	flow->el = el;
 	return (struct Ast *)flow;
+}
+
+struct Ast *
+newCall(struct Symbol* fuc, struct Ast * l){
+	struct Call * call = new Call();
+	if(!call){
+		yyerror("out of space\n");
+		exit(0);
+	}
+	call->type = DEF;
+	call->call = fuc;
+	call->l = l;
+	return (struct Ast *)call;
 }
 
 void
@@ -506,6 +536,9 @@ eval(struct Ast * ast){
 		break;
 		/*  调用内建函数 */
 		/* 调用用户自定义函数 */
+	case DEF:
+		v = doCall((struct Call*)ast);
+		break;
 	default:
 		printf("internal error: bad node %c\n",ast->type);
 		break;
@@ -515,6 +548,55 @@ eval(struct Ast * ast){
 
 void print(struct Ast * node){
 	cout<<"print "<<eval(node)<<endl;
+}
+
+void def(struct Symbol *  name,struct SymList * symlist,struct Ast * func, bool ret) {
+	name->symlist = symlist;
+	name->func = func;
+	name->ret = ret;
+}
+
+double doCall(struct Call * call){
+	double v = 0.0;
+	auto len = 0;
+	struct Ast * args_act = call->l;
+	vector<struct Symbol *> args_vir; 
+	if(call->call->symlist != NULL)
+	for(auto p = call->call->symlist->l.begin();p!= call->call->symlist->l.end();p++) {
+		args_vir.push_back(*p);
+		len++;
+	}
+	vector<double> oldValue(len);
+	vector<double> newValue(len);
+	for(auto i = 0;i < len;i++) {
+		if(args_act->type == 'L') {
+		 	newValue[i] = eval(args_act->l);
+		 	args_act = args_act->r;
+		} else {
+		 	newValue[i] = eval(args_act);
+		 	args_act = NULL;
+		}
+	}
+	reverse(newValue.begin(), newValue.end());
+	/* save old value  and assign new value */
+
+	for(auto i = 0; i<len;i++) {
+		oldValue[i] = args_vir[i]->value;
+		args_vir[i]->value = newValue[i];
+		//cout<<(*p)->name<<" "<<oldValue[i]<<"=>"<<newValue[i]<<endl; 
+	}
+
+	if(call->call->ret) 
+		v = eval(call->call->func);
+	 else 
+		eval(call->call->func);
+	 
+	for(auto i = 0; i<len;i++) {
+		args_vir[i]->value = oldValue[i];
+		//cout<<(*p)->name<<" "<<newValue[i]<<"<="<<oldValue[i]<<endl; 
+	}
+
+	return v;
 }
 /*
 double callBuiltin(struct BCall * call){

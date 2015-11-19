@@ -55,17 +55,18 @@ int error_tag = 1;
 
 %start Program 
 %type <symlist> Sym_List
-%type <ast> Decl_List State_List State 
+%type <ast> Decl_List Def_List Def  State_List State  
 %type <ast>  If_State While_State Exp Exp_List 
 
 %%
 
-Program : Decl_List State_List  {
+Program :  Def_List Decl_List State_List  {
 	if(error_tag){
-		eval($2);
-//	table_show();
-		treefree($2);
+	   if($3 != NULL) {
+		eval($3);
+		treefree($3);
 		tablefree();
+		}
 	}
 	else{
 		cout<<"cannot execute for synax mistake"<<endl;
@@ -80,7 +81,15 @@ Decl_List : {$$=NULL; }
 		 	}
 		 | Decl_List VAR Sym_List  { lyyerror(@1,"缺少 ';' ");  }
 		 ; 
-		
+
+Def_List:     { $$ = NULL; }
+	| Def {	$$ = NULL; }
+	| Def_List Def { $$ = NULL; }
+	;
+Def:	DEF ID '(' Sym_List ')' '{' State_List '}' { def($2, $4, $7, false);}
+ 	| DEF ID '(' Sym_List ')' '{' RET Exp ';' '}'  { def($2, $4, $8, true);}
+	;
+
 Sym_List:    { $$ = NULL; } 
 		| ID { $$ = newSymList($1); } 
 		| Sym_List ',' ID  { $$ = insertSymList('b',$3,$1); }
@@ -95,7 +104,7 @@ State_List: {$$=NULL;}
 		;	
 Exp_List: {$$=NULL;}
 		| Exp     { $$=$1;}
-		| Exp_List ',' Exp { $$ = newAst('L',$1,$3); }
+		| Exp_List ',' Exp { $$ = newAst('L',$3,$1); }
 		| Exp_List ','     { lyyerror(@1,"多余 ',' "); }
 		;
 State:  Exp   ';'      { $$=$1; }
@@ -172,6 +181,7 @@ Exp : NUMBER      		{ $$=newNum($1); }
 	| '-' Exp %prec UMINUS { $$=newAst('M',$2,NULL); }
 	| ID          { $$ = newRef($1);}
 	| ID '=' Exp  { $$ = newAsgn($1,$3);}
+	| ID '(' Exp_List ')' { $$=newCall($1,$3);}
 	;
 %%
 
