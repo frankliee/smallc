@@ -1,0 +1,6 @@
+var a, b;
+
+write('测试 % 功能');
+read(a);
+read(b);
+write(a mod b);

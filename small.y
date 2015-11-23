@@ -64,7 +64,7 @@ Program :  Def_List Decl_List State_List  {
 	if(error_tag){
 	   if($3 != NULL) {
 		eval($3);
-		treefree($3);
+		//treefree($3);
 		tablefree();
 		}
 	}
