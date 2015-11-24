@@ -364,6 +364,11 @@ treefree(struct Ast * root){
 			if(((struct Flow *)root)->el !=NULL)
 				treefree(((struct Flow *)root)->el);
 			break;
+
+		case DEF: 
+			if(((struct Call *)root)->l != NULL)
+				treefree(((struct Call *)root)->l);
+			break;
 	}
 	free(root);
 }
@@ -595,7 +600,6 @@ double doCall(struct Call * call){
 		args_vir[i]->value = oldValue[i];
 		//cout<<(*p)->name<<" "<<newValue[i]<<"<="<<oldValue[i]<<endl; 
 	}
-
 	return v;
 }
 /*

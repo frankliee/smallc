@@ -1,6 +1,86 @@
-var a, b;
+def sum2(a, b) { return a + b; }
+def gcd(a, b) { 
+	if(a < b) { tmp = a; a = b; b = tmp; } 
+	while(b != 0){
+		tmp = a mod b;
+		a = b;
+		b = tmp;
+	}
+	write( a);
+}
 
-write('测试 % 功能');
-read(a);
-read(b);
-write(a mod b);
+write('测试 取模 % 功能，输入a 和 b, 例如 13 mod 3 => 1');
+write('若 a=b=0, 则退出程序');
+t = true;
+while(t) {
+	read(a);
+	read(b);
+	if(a == 0 and b == 0) { t = false;}
+	else { write(a mod b); }
+}
+
+write('测试 异或 ^ 功能, 输入a 和 b, 例如 5 ^ 3 => 6');
+write('若 a=b=0, 则退出程序');
+t = true;
+while(t) {
+	read(a);
+	read(b);
+	if(a == 0 and b == 0) { t = false; }
+	else { write(a ^ b); }
+}
+
+write('测试 odd 功能，输入 a');
+write('若 a < 0, 则退出程序');
+t = true ;
+while(t) {
+	read(a);
+	if(a < 0) { t = false;  }
+	else { write ( odd(a) ); }
+}
+ 
+write('-- , ++ 和 for 测试');
+for(i = 0, j = 5 ;i <= 5; ++i, --j ) {
+	write(i);
+	write(j);
+}
+
+write('do 测试'); 
+i = 1;
+do { 
+	write(i);
+	++ i;
+} while (i <= 5 );
+
+write('repeat until 测试');
+i = 1;
+repeat {
+	write(i);
+	++ i;
+} until ( i > 5);
+
+write('测试sum2函数');
+write('若a=b=0退出测试');
+t = true;
+while(t) {
+	read(a);
+	read(b);
+	if( a == 0 and b == 0) { t = false;}
+	else	{  write( sum2(a, b) );} 
+}
+ 
+write('测试gcd函数，输出a，b的最大公约数');
+write('若a=b=0退出测试');
+t = true;
+while(t) {
+	read(a);
+	read(b);
+	if( a == 0 and b == 0) { t = false;}
+	else {  gcd(a, b); }
+}
+
+
+
+
+
+
+
